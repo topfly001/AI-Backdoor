@@ -1,6 +1,6 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Sphere, Line, Float } from '@react-three/drei';
+import { Line, Float } from '@react-three/drei';
 import * as THREE from 'three';
 
 const NeuralNetworkScene: React.FC = () => {

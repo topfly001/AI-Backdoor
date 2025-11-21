@@ -1,5 +1,12 @@
 import { GoogleGenAI } from "@google/genai";
 
+// Declare process for TypeScript to understand global process variable injected by Vite
+declare const process: {
+  env: {
+    API_KEY?: string;
+  }
+};
+
 // Initialize Gemini Client lazily or safely to prevent white screen of death
 // if the API key is missing during initial bundle load.
 const getAiClient = () => {
