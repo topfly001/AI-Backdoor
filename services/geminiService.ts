@@ -1,8 +1,15 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 
-// Initialize Gemini Client
-// Using process.env.API_KEY as strictly required by guidelines
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Initialize Gemini Client lazily or safely to prevent white screen of death
+// if the API key is missing during initial bundle load.
+const getAiClient = () => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    console.warn("API_KEY is missing. Chat functionality will be disabled.");
+    return null;
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 const MODEL_NAME = 'gemini-2.5-flash';
 
@@ -21,13 +28,17 @@ const SYSTEM_INSTRUCTION = `
 
 export const askGemini = async (question: string): Promise<string> => {
   try {
+    const ai = getAiClient();
+    if (!ai) {
+      return "系统配置错误：未检测到 API Key。请检查 Cloudflare 环境变量设置。";
+    }
+
     const response = await ai.models.generateContent({
       model: MODEL_NAME,
       contents: question,
       config: {
         systemInstruction: SYSTEM_INSTRUCTION,
         temperature: 0.7,
-        maxOutputTokens: 500,
       }
     });
 

@@ -3,14 +3,22 @@ import react from '@vitejs/plugin-react';
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, (process as any).cwd(), '');
+  // 加载所有环境变量 (包括 Cloudflare Pages 设置的)
+  // Using '.' instead of process.cwd() prevents "Property 'cwd' does not exist on type 'Process'" error
+  const env = loadEnv(mode, '.', '');
+  
   return {
     plugins: [react()],
     define: {
-      // 这一步至关重要：将构建环境中的 API_KEY 注入到前端代码中
-      // 注意：在生产环境（客户端）暴露 API Key 有一定风险，请确保已在 Google Cloud Console 限制该 Key 的 Referrer
-      'process.env.API_KEY': JSON.stringify(env.API_KEY),
-      'process.env': {} // 防止代码中直接调用 process.env 报错
+      // 安全地注入 API Key，如果不存在则注入空字符串，防止构建错误
+      'process.env.API_KEY': JSON.stringify(env.API_KEY || ''),
+      // 避免直接重新定义 process 对象，这会导致某些库崩溃
+      // 我们只处理我们需要用到的具体变量
     },
+    build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
+      sourcemap: false,
+    }
   };
 });
